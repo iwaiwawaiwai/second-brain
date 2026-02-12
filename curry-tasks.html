@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カレーを作る - タスクツリー</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0c0c10;
+      min-height: 100vh;
+      color: #e8e4df;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.3;
+      z-index: 0;
+      animation: blobFloat 14s ease-in-out infinite alternate;
+    }
+    .bg-blob-1 { width: 600px; height: 600px; background: #d45d1e; top: -200px; left: -150px; }
+    .bg-blob-2 { width: 450px; height: 450px; background: #f5c242; bottom: -150px; right: -100px; animation-delay: -5s; }
+    .bg-blob-3 { width: 350px; height: 350px; background: #7b1fa2; top: 50%; left: 40%; animation-delay: -9s; }
+
+    @keyframes blobFloat {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, -40px) scale(1.15); }
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #d45d1e, #f5c242);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      box-shadow: 0 8px 32px rgba(212, 93, 30, 0.4);
+      animation: headerPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes headerPulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(212, 93, 30, 0.4); }
+      50%      { box-shadow: 0 8px 48px rgba(212, 93, 30, 0.6); }
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f5c242, #e8873a, #d45d1e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: rgba(255,255,255,0.35);
+      font-size: 0.82rem;
+      margin-top: 0.3rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    /* Progress */
+    .progress-section {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .progress-ring-wrapper {
+      flex-shrink: 0;
+      position: relative;
+      width: 64px;
+      height: 64px;
+    }
+
+    .progress-ring-bg, .progress-ring-fill {
+      fill: none;
+      stroke-width: 5;
+    }
+    .progress-ring-bg { stroke: rgba(255,255,255,0.08); }
+    .progress-ring-fill {
+      stroke: url(#progressGrad);
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: center;
+      transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-ring-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #f5c242;
+    }
+
+    .progress-info { flex: 1; }
+
+    .progress-info-main {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .progress-info-main span {
+      color: #f5c242;
+      font-weight: 800;
+    }
+
+    .progress-info-sub {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 0.2rem;
+    }
+
+    .progress-bar-mini {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 999px;
+      margin-top: 0.6rem;
+      overflow: hidden;
+    }
+
+    .progress-bar-mini-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #d45d1e, #f5c242);
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* =================== TREE =================== */
+    .tree {
+      position: relative;
+      padding-left: 0;
+    }
+
+    /* Root node */
+    .tree-root {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+      padding: 0.7rem 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+    }
+
+    .tree-root-icon {
+      font-size: 1.5rem;
+    }
+
+    .tree-root-label {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Branches container */
+    .tree-branches {
+      list-style: none;
+      position: relative;
+      margin-left: 20px;
+      padding-left: 24px;
+    }
+
+    /* Vertical line for branches */
+    .tree-branches::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.03));
+    }
+
+    /* Branch (phase) */
+    .tree-branch {
+      position: relative;
+      margin-bottom: 0.4rem;
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: branchIn 0.4s ease forwards;
+    }
+
+    .tree-branch:nth-child(1) { animation-delay: 0.1s; }
+    .tree-branch:nth-child(2) { animation-delay: 0.18s; }
+    .tree-branch:nth-child(3) { animation-delay: 0.26s; }
+    .tree-branch:nth-child(4) { animation-delay: 0.34s; }
+    .tree-branch:nth-child(5) { animation-delay: 0.42s; }
+
+    @keyframes branchIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Horizontal connector from vertical line to branch header */
+    .tree-branch::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 22px;
+      width: 24px;
+      height: 2px;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* Branch header (collapsible) */
+    .branch-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.9rem;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 12px;
+      transition: background 0.2s ease;
+    }
+
+    .branch-header:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .branch-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .branch-toggle svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: rgba(255,255,255,0.4);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tree-branch.collapsed .branch-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .branch-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .tree-branch:nth-child(1) .branch-icon { background: linear-gradient(135deg, #1e88e5, #42a5f5); box-shadow: 0 3px 12px rgba(30,136,229,0.35); }
+    .tree-branch:nth-child(2) .branch-icon { background: linear-gradient(135deg, #43a047, #66bb6a); box-shadow: 0 3px 12px rgba(67,160,71,0.35); }
+    .tree-branch:nth-child(3) .branch-icon { background: linear-gradient(135deg, #d45d1e, #e8873a); box-shadow: 0 3px 12px rgba(212,93,30,0.35); }
+    .tree-branch:nth-child(4) .branch-icon { background: linear-gradient(135deg, #e91e63, #f06292); box-shadow: 0 3px 12px rgba(233,30,99,0.35); }
+    .tree-branch:nth-child(5) .branch-icon { background: linear-gradient(135deg, #7b1fa2, #ab47bc); box-shadow: 0 3px 12px rgba(123,31,162,0.35); }
+
+    .branch-info { flex: 1; }
+
+    .branch-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .branch-sub {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .branch-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.06);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .branch-badge.done {
+      color: #66bb6a;
+      background: rgba(67,160,71,0.12);
+      border-color: rgba(67,160,71,0.25);
+    }
+
+    /* Leaves (tasks) */
+    .tree-leaves {
+      list-style: none;
+      margin-left: 20px;
+      padding-left: 24px;
+      position: relative;
+      overflow: hidden;
+      max-height: 600px;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    }
+
+    .tree-branch.collapsed .tree-leaves {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .tree-leaves::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 14px;
+      width: 2px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .tree-leaf {
+      position: relative;
+      margin-bottom: 0.3rem;
+    }
+
+    /* Horizontal connector for leaf */
+    .tree-leaf::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 18px;
+      width: 20px;
+      height: 2px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    /* Leaf dot at end of connector */
+    .tree-leaf::after {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 15px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid #1a1a22;
+      transition: all 0.3s ease;
+      z-index: 1;
+    }
+
+    .tree-leaf.completed::after {
+      background: #66bb6a;
+      box-shadow: 0 0 8px rgba(102,187,106,0.5);
+    }
+
+    /* Leaf card */
+    .leaf-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 0.7rem 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-left: 8px;
+    }
+
+    .leaf-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.1);
+      transform: translateX(3px);
+    }
+
+    .leaf-card:active {
+      transform: translateX(3px) scale(0.99);
+    }
+
+    .tree-leaf.completed .leaf-card {
+      border-color: rgba(67,160,71,0.15);
+      background: rgba(67,160,71,0.04);
+    }
+
+    /* Checkbox */
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(255,255,255,0.18);
+      border-radius: 7px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tree-leaf.completed .checkbox {
+      background: linear-gradient(135deg, #43a047, #66bb6a);
+      border-color: transparent;
+      box-shadow: 0 2px 10px rgba(67,160,71,0.4);
+      animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes checkPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .checkbox svg {
+      width: 13px;
+      height: 13px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease 0.05s;
+    }
+
+    .tree-leaf.completed .checkbox svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .leaf-content { flex: 1; min-width: 0; }
+
+    .leaf-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      transition: all 0.3s ease;
+    }
+
+    .tree-leaf.completed .leaf-name {
+      color: rgba(255,255,255,0.28);
+      text-decoration: line-through;
+      text-decoration-color: rgba(255,255,255,0.12);
+    }
+
+    .leaf-desc {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.25);
+      margin-top: 0.05rem;
+      transition: all 0.3s ease;
+    }
+
+    .tree-leaf.completed .leaf-desc {
+      color: rgba(255,255,255,0.12);
+    }
+
+    .leaf-time {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.04);
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    /* Complete overlay */
+    .complete-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(12,12,16,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .complete-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .complete-card {
+      text-align: center;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .complete-overlay.show .complete-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .complete-card .big-emoji {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 1rem;
+      animation: bounce 1s ease infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+
+    .complete-card h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f5c242, #e8873a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .complete-card p {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.95rem;
+      margin-top: 0.2rem;
+    }
+
+    .reset-btn {
+      margin-top: 1.5rem;
+      padding: 0.7rem 2rem;
+      background: linear-gradient(135deg, #d45d1e, #e8873a);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(212,93,30,0.4);
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .reset-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 28px rgba(212,93,30,0.5);
+    }
+
+    /* Confetti */
+    .confetti-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+
+  <div class="container">
+    <header>
+      <div class="header-icon">🍛</div>
+      <h1>カレーを作る</h1>
+      <p>Task Tree</p>
+    </header>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-ring-wrapper">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <defs>
+            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#d45d1e"/>
+              <stop offset="100%" stop-color="#f5c242"/>
+            </linearGradient>
+          </defs>
+          <circle class="progress-ring-bg" cx="32" cy="32" r="27"/>
+          <circle class="progress-ring-fill" id="progressRing" cx="32" cy="32" r="27"
+            stroke-dasharray="169.65" stroke-dashoffset="169.65"/>
+        </svg>
+        <div class="progress-ring-text" id="progressPct">0%</div>
+      </div>
+      <div class="progress-info">
+        <div class="progress-info-main"><span id="statDone">0</span> / <span id="statTotal">13</span> completed</div>
+        <div class="progress-info-sub">Current phase: <span id="statPhase">準備</span></div>
+        <div class="progress-bar-mini">
+          <div class="progress-bar-mini-fill" id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tree -->
+    <div class="tree">
+      <div class="tree-root">
+        <span class="tree-root-icon">🍛</span>
+        <span class="tree-root-label">カレーを作る</span>
+      </div>
+
+      <ul class="tree-branches">
+
+        <!-- Phase 1 -->
+        <li class="tree-branch" data-phase="1">
+          <div class="branch-header">
+            <div class="branch-toggle"><svg viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6"/></svg></div>
+            <div class="branch-icon">🛒</div>
+            <div class="branch-info">
+              <div class="branch-title">準備</div>
+              <div class="branch-sub">材料と道具をそろえる</div>
+            </div>
+            <span class="branch-badge" data-phase="1">0/2</span>
+          </div>
+          <ul class="tree-leaves">
+            <li class="tree-leaf" data-phase="1">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">材料の確認・買い出し</div>
+                  <div class="leaf-desc">肉・玉ねぎ・じゃがいも・にんじん・カレールウ</div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="1">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">道具の準備</div>
+                  <div class="leaf-desc">鍋・包丁・まな板・お玉・計量カップ</div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Phase 2 -->
+        <li class="tree-branch" data-phase="2">
+          <div class="branch-header">
+            <div class="branch-toggle"><svg viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6"/></svg></div>
+            <div class="branch-icon">🔪</div>
+            <div class="branch-info">
+              <div class="branch-title">下ごしらえ</div>
+              <div class="branch-sub">食材をカットする</div>
+            </div>
+            <span class="branch-badge" data-phase="2">0/3</span>
+          </div>
+          <ul class="tree-leaves">
+            <li class="tree-leaf" data-phase="2">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">野菜を洗う</div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="2">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">野菜を切る</div>
+                  <div class="leaf-desc">玉ねぎはくし切り、じゃがいも&にんじんは一口大</div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="2">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">肉を一口大に切る</div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Phase 3 -->
+        <li class="tree-branch" data-phase="3">
+          <div class="branch-header">
+            <div class="branch-toggle"><svg viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6"/></svg></div>
+            <div class="branch-icon">🔥</div>
+            <div class="branch-info">
+              <div class="branch-title">調理</div>
+              <div class="branch-sub">炒めて煮込む</div>
+            </div>
+            <span class="branch-badge" data-phase="3">0/4</span>
+          </div>
+          <ul class="tree-leaves">
+            <li class="tree-leaf" data-phase="3">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">肉を炒める</div>
+                  <div class="leaf-desc">油を熱し、表面に焼き色をつける</div>
+                </div>
+                <span class="leaf-time">3 min</span>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="3">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">野菜を炒める</div>
+                  <div class="leaf-desc">玉ねぎ → にんじん → じゃがいもの順</div>
+                </div>
+                <span class="leaf-time">5 min</span>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="3">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">水を加えて煮込む</div>
+                  <div class="leaf-desc">アクを取りながら中火で</div>
+                </div>
+                <span class="leaf-time">20 min</span>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="3">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">ルウを溶かして煮込む</div>
+                  <div class="leaf-desc">火を止めてルウを入れ、弱火でとろみがつくまで</div>
+                </div>
+                <span class="leaf-time">10 min</span>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Phase 4 -->
+        <li class="tree-branch" data-phase="4">
+          <div class="branch-header">
+            <div class="branch-toggle"><svg viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6"/></svg></div>
+            <div class="branch-icon">🍽</div>
+            <div class="branch-info">
+              <div class="branch-title">仕上げ</div>
+              <div class="branch-sub">盛り付けて完成</div>
+            </div>
+            <span class="branch-badge" data-phase="4">0/2</span>
+          </div>
+          <ul class="tree-leaves">
+            <li class="tree-leaf" data-phase="4">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">味を確認・調整</div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="4">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">ご飯を盛り、カレーをかける</div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Phase 5 -->
+        <li class="tree-branch" data-phase="5">
+          <div class="branch-header">
+            <div class="branch-toggle"><svg viewBox="0 0 16 16"><polyline points="4 6 8 10 12 6"/></svg></div>
+            <div class="branch-icon">✨</div>
+            <div class="branch-info">
+              <div class="branch-title">片付け</div>
+              <div class="branch-sub">キッチンをきれいに</div>
+            </div>
+            <span class="branch-badge" data-phase="5">0/2</span>
+          </div>
+          <ul class="tree-leaves">
+            <li class="tree-leaf" data-phase="5">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">食器・調理器具を洗う</div>
+                </div>
+              </div>
+            </li>
+            <li class="tree-leaf" data-phase="5">
+              <div class="leaf-card">
+                <div class="checkbox"><svg viewBox="0 0 16 16"><polyline points="3 8.5 6.5 12 13 4"/></svg></div>
+                <div class="leaf-content">
+                  <div class="leaf-name">残りを保存容器に移す</div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+
+  <!-- Complete overlay -->
+  <div class="complete-overlay" id="completeOverlay">
+    <div class="complete-card">
+      <span class="big-emoji">🍛</span>
+      <h2>カレー完成！</h2>
+      <p>おいしく召し上がれ</p>
+      <button class="reset-btn" id="resetBtn">もう一度作る</button>
+    </div>
+  </div>
+
+  <canvas class="confetti-overlay" id="confetti"></canvas>
+
+  <script>
+    const phaseNames = { 1: '準備', 2: '下ごしらえ', 3: '調理', 4: '仕上げ', 5: '片付け' };
+    const leaves = document.querySelectorAll('.tree-leaf');
+    const progressRing = document.getElementById('progressRing');
+    const progressBar = document.getElementById('progressBar');
+    const progressPct = document.getElementById('progressPct');
+    const statDone = document.getElementById('statDone');
+    const statTotal = document.getElementById('statTotal');
+    const statPhase = document.getElementById('statPhase');
+    const completeOverlay = document.getElementById('completeOverlay');
+    const resetBtn = document.getElementById('resetBtn');
+    const total = leaves.length;
+    const circumference = 2 * Math.PI * 27; // r=27
+
+    // Toggle branch collapse
+    document.querySelectorAll('.branch-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        // Don't collapse if clicking happened inside a leaf
+        const branch = header.closest('.tree-branch');
+        branch.classList.toggle('collapsed');
+      });
+    });
+
+    // Toggle leaf completion
+    leaves.forEach(leaf => {
+      leaf.querySelector('.leaf-card').addEventListener('click', (e) => {
+        e.stopPropagation();
+        leaf.classList.toggle('completed');
+        updateProgress();
+      });
+    });
+
+    function updateProgress() {
+      const done = document.querySelectorAll('.tree-leaf.completed').length;
+      const pct = Math.round((done / total) * 100);
+
+      // Ring
+      const offset = circumference - (circumference * pct / 100);
+      progressRing.style.strokeDashoffset = offset;
+      progressPct.textContent = pct + '%';
+
+      // Bar
+      progressBar.style.width = pct + '%';
+      statDone.textContent = done;
+
+      // Phase badges
+      let currentPhase = 5;
+      for (let p = 1; p <= 5; p++) {
+        const phaseLeaves = document.querySelectorAll(`.tree-leaf[data-phase="${p}"]`);
+        const phaseDone = document.querySelectorAll(`.tree-leaf.completed[data-phase="${p}"]`).length;
+        const badge = document.querySelector(`.branch-badge[data-phase="${p}"]`);
+        if (badge) {
+          badge.textContent = phaseDone + '/' + phaseLeaves.length;
+          if (phaseDone === phaseLeaves.length && phaseLeaves.length > 0) {
+            badge.classList.add('done');
+          } else {
+            badge.classList.remove('done');
+            if (currentPhase === 5 && phaseDone < phaseLeaves.length) {
+              currentPhase = p;
+            }
+          }
+        }
+      }
+      statPhase.textContent = phaseNames[currentPhase];
+
+      if (done === total) {
+        setTimeout(() => {
+          completeOverlay.classList.add('show');
+          launchConfetti();
+        }, 350);
+      } else {
+        completeOverlay.classList.remove('show');
+      }
+    }
+
+    resetBtn.addEventListener('click', () => {
+      completeOverlay.classList.remove('show');
+      leaves.forEach(leaf => leaf.classList.remove('completed'));
+      document.querySelectorAll('.tree-branch.collapsed').forEach(b => b.classList.remove('collapsed'));
+      updateProgress();
+    });
+
+    // Confetti
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = [];
+      const colors = ['#d45d1e', '#e8873a', '#f5c242', '#43a047', '#1e88e5', '#e91e63', '#ab47bc', '#fff'];
+
+      for (let i = 0; i < 200; i++) {
+        pieces.push({
+          x: canvas.width / 2 + (Math.random() - 0.5) * 300,
+          y: canvas.height / 2,
+          w: Math.random() * 10 + 4,
+          h: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: -(Math.random() * 14 + 5),
+          vx: (Math.random() - 0.5) * 14,
+          gravity: 0.18,
+          rot: Math.random() * 360,
+          rv: (Math.random() - 0.5) * 14,
+          opacity: 1,
+        });
+      }
+
+      let frame = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        pieces.forEach(p => {
+          if (p.opacity <= 0) return;
+          alive = true;
+          p.vx *= 0.99;
+          p.vy += p.gravity;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.rv;
+          if (frame > 100) p.opacity -= 0.012;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+        frame++;
+        if (alive) requestAnimationFrame(draw);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      draw();
+    }
+  </script>
+</body>
+</html>
