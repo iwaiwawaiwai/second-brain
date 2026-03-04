@@ -1,0 +1,15 @@
+# サンプルコード
+
+## Python の例
+def hello_world():
+    print("Hello, World!")
+    return "こんにちは、世界！"
+
+## JavaScript の例
+function greet(name) {
+    console.log(`Hello, ${name}!`);
+    return `こんにちは、${name}さん！`;
+}
+
+## 使い方
+このファイルはサンプルコードを含むテキストファイルです。
