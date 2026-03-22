@@ -1,5 +1,13 @@
 # 画像ファイル（ローカル管理のみ）
 mercari-items/
 
+# 音声・動画ファイル（大容量）
+*.qta
+*.m4a
+*.mp3
+*.wav
+*.mp4
+*.mov
+
 # macOS
 .DS_Store
