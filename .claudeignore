@@ -1,0 +1,26 @@
+# 依存関係（最優先で除外）
+node_modules/
+package-lock.json
+yarn.lock
+
+# ビルド成果物
+dist/
+build/
+.next/
+out/
+
+# ログ・キャッシュ
+*.log
+.cache/
+.npm/
+
+# 画像・バイナリ
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.zip
+
+# その他（Gitの内部データなど）
+.git/

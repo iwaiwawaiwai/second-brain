@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>KAORILOGO AIコンシェルジュ｜データスキーマ定義書</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #f7f6f3;
+      color: #2c2c2c;
+      padding: 40px;
+    }
+    h1 { font-size: 22px; font-weight: bold; margin-bottom: 4px; color: #1a1a1a; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+    h2 {
+      font-size: 15px; font-weight: bold;
+      margin: 36px 0 12px;
+      padding-left: 10px;
+      border-left: 4px solid #5a7d6a;
+      color: #2c2c2c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    thead tr { background: #3d5c4a; color: #fff; }
+    thead th {
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: #f9f9f7; }
+    tbody tr:hover { background: #eef3f0; }
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #ececec;
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    /* バッジ共通 */
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+      margin: 1px 2px 1px 0;
+    }
+    /* 情報源バッジ */
+    .badge-site    { background: #dbeafe; color: #1e40af; }
+    .badge-us      { background: #fef3c7; color: #92400e; }
+    .badge-derived { background: #ede9fe; color: #5b21b6; }
+    /* DB制約バッジ */
+    .badge-pk      { background: #fde68a; color: #78350f; border: 1px solid #f59e0b; }
+    .badge-fk      { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+    .badge-nn      { background: #fee2e2; color: #991b1b; }
+    .badge-uq      { background: #e0e7ff; color: #3730a3; }
+    .badge-null    { background: #f3f4f6; color: #6b7280; }
+    .badge-enum    { background: #fce7f3; color: #9d174d; }
+    .field-en {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 12px;
+      color: #3d5c4a;
+      white-space: nowrap;
+    }
+    .type-cell {
+      font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 11.5px;
+      color: #555;
+    }
+    .note { color: #666; font-size: 11.5px; }
+    .section-desc { font-size: 13px; color: #555; margin-bottom: 12px; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      margin-bottom: 28px;
+      font-size: 12px;
+      align-items: center;
+      background: #fff;
+      padding: 14px 18px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .legend-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .legend-title { font-weight: bold; color: #444; margin-right: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .divider { color: #ccc; }
+  </style>
+</head>
+<body>
+
+  <h1>KAORILOGO AIコンシェルジュ｜データスキーマ定義書</h1>
+  <div class="subtitle">作成日: 2026-03-22　／　対象: kaorilogo-products.json および今後追加予定のデータ</div>
+
+  <!-- 凡例 -->
+  <div class="legend">
+    <div class="legend-group">
+      <span class="legend-title">情報源：</span>
+      <span class="legend-item"><span class="badge badge-site">サイト情報</span> 公式サイト・ECから取得</span>
+      <span class="legend-item"><span class="badge badge-us">こちらで付与</span> AIまたは手動アサイン</span>
+      <span class="legend-item"><span class="badge badge-derived">サイト+加工</span> サイト情報を整理・要約</span>
+    </div>
+    <span class="divider">｜</span>
+    <div class="legend-group">
+      <span class="legend-title">DB制約：</span>
+      <span class="legend-item"><span class="badge badge-pk">PK</span> 主キー</span>
+      <span class="legend-item"><span class="badge badge-fk">FK</span> 外部キー</span>
+      <span class="legend-item"><span class="badge badge-nn">NOT NULL</span> 必須</span>
+      <span class="legend-item"><span class="badge badge-uq">UNIQUE</span> 一意</span>
+      <span class="legend-item"><span class="badge badge-null">NULL可</span> 省略可</span>
+      <span class="legend-item"><span class="badge badge-enum">ENUM</span> 選択肢固定</span>
+    </div>
+  </div>
+
+  <!-- ① 商品マスタ -->
+  <h2>① 商品マスタ（products）</h2>
+  <p class="section-desc">各アロマ商品の基本情報。現在28件。JSONファイル: <code>kaorilogo-products.json</code></p>
+  <table>
+    <thead>
+      <tr>
+        <th>フィールド名</th>
+        <th>日本語名</th>
+        <th>データ型</th>
+        <th>制約</th>
+        <th>情報源</th>
+        <th>備考</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="field-en">id</td>
+        <td>商品ID</td>
+        <td class="type-cell">VARCHAR(50)</td>
+        <td><span class="badge badge-pk">PK</span><span class="badge badge-nn">NOT NULL</span><span class="badge badge-uq">UNIQUE</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">管理用ユニークID（例: eo_lavender, blend_on_time）</td>
+      </tr>
+      <tr>
+        <td class="field-en">brand</td>
+        <td>ブランド名</td>
+        <td class="type-cell">ENUM</td>
+        <td><span class="badge badge-nn">NOT NULL</span><span class="badge badge-enum">ENUM</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">'Life of Aroma' | 'KAORILOGO'</td>
+      </tr>
+      <tr>
+        <td class="field-en">name</td>
+        <td>商品名（英語）</td>
+        <td class="type-cell">VARCHAR(100)</td>
+        <td><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note"></td>
+      </tr>
+      <tr>
+        <td class="field-en">name_ja</td>
+        <td>商品名（日本語）</td>
+        <td class="type-cell">VARCHAR(100)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">英語名のみの商品は省略可</td>
+      </tr>
+      <tr>
+        <td class="field-en">category</td>
+        <td>カテゴリ</td>
+        <td class="type-cell">ENUM</td>
+        <td><span class="badge badge-nn">NOT NULL</span><span class="badge badge-enum">ENUM</span></td>
+        <td><span class="badge badge-derived">サイト+加工</span></td>
+        <td class="note">essential_oil | blend_aroma | travel_aroma | business_card_aroma | original_blend</td>
+      </tr>
+      <tr>
+        <td class="field-en">description</td>
+        <td>説明文</td>
+        <td class="type-cell">TEXT</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-derived">サイト+加工</span></td>
+        <td class="note">商品ページの説明文を要約・整形</td>
+      </tr>
+      <tr>
+        <td class="field-en">components</td>
+        <td>成分・原料</td>
+        <td class="type-cell">JSON (array)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">精油名の文字列リスト。ブレンド品の比率は未取得</td>
+      </tr>
+      <tr>
+        <td class="field-en">effects</td>
+        <td>効果・効能タグ</td>
+        <td class="type-cell">JSON (array)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-derived">サイト+加工</span></td>
+        <td class="note">AIの推薦文生成に使用。説明文から抽出・整理</td>
+      </tr>
+      <tr>
+        <td class="field-en">url</td>
+        <td>商品ページURL</td>
+        <td class="type-cell">TEXT</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">推薦結果の「詳細を見る」リンクに使用</td>
+      </tr>
+      <tr>
+        <td class="field-en">formats</td>
+        <td>販売形態・容量</td>
+        <td class="type-cell">JSON (array)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">例: ["5ml", "10ml", "ロールオン"]</td>
+      </tr>
+      <tr>
+        <td class="field-en">scenes</td>
+        <td>推奨シーン</td>
+        <td class="type-cell">JSON (array)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">AI推薦ロジックに使用。訪問後に要確認・修正</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ② 6軸スコア -->
+  <h2>② 6軸スコア（axes）</h2>
+  <p class="section-desc">products テーブルに内包。products.id を外部キーとして参照。すべて<span class="badge badge-us">こちらで付与</span>した値。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>フィールド名</th>
+        <th>日本語名</th>
+        <th>データ型</th>
+        <th>制約</th>
+        <th>情報源</th>
+        <th>備考（軸の両端）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="field-en">axes.product_id</td>
+        <td>商品ID（参照）</td>
+        <td class="type-cell">VARCHAR(50)</td>
+        <td><span class="badge badge-fk">FK</span><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">→ products.id</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.activation</td>
+        <td>活性度</td>
+        <td class="type-cell">TINYINT (1–10)</td>
+        <td><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">1=深い鎮静・睡眠　↔　10=高い活性・集中</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.warmth</td>
+        <td>温かみ</td>
+        <td class="type-cell">TINYINT (1–10)</td>
+        <td><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">1=クール・爽やか・シャープ　↔　10=ウォーム・甘み・まろやか</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.social</td>
+        <td>社交性</td>
+        <td class="type-cell">TINYINT (1–10)</td>
+        <td><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">1=プライベート・内向き　↔　10=パブリック・コミュニケーション</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.formal</td>
+        <td>フォーマル度</td>
+        <td class="type-cell">TINYINT (1–10)</td>
+        <td><span class="badge badge-nn">NOT NULL</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">1=カジュアル・現代的　↔　10=フォーマル・伝統・信頼感</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.confidence</td>
+        <td>スコア信頼度</td>
+        <td class="type-cell">ENUM</td>
+        <td><span class="badge badge-nn">NOT NULL</span><span class="badge badge-enum">ENUM</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">'high' | 'medium' | 'low'　※medium以下は訪問後に要確認</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.score_source</td>
+        <td>スコア根拠</td>
+        <td class="type-cell">ENUM</td>
+        <td><span class="badge badge-nn">NOT NULL</span><span class="badge badge-enum">ENUM</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">'standard_aromatherapy' | 'product_description'</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ③ 今後追加予定 -->
+  <h2>③ 今後追加予定のフィールド</h2>
+  <p class="section-desc">訪問ヒアリングやサイト実装に合わせて追加していく項目。</p>
+  <table>
+    <thead>
+      <tr>
+        <th>フィールド名</th>
+        <th>日本語名</th>
+        <th>データ型</th>
+        <th>制約</th>
+        <th>情報源</th>
+        <th>優先度・備考</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="field-en">price</td>
+        <td>販売価格（税込）</td>
+        <td class="type-cell">INT</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">🔴 高：推薦カードに価格表示が必要。ECサイトで確認要</td>
+      </tr>
+      <tr>
+        <td class="field-en">image_url</td>
+        <td>商品画像URL</td>
+        <td class="type-cell">TEXT</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">🔴 高：推薦カードのビジュアルに必須</td>
+      </tr>
+      <tr>
+        <td class="field-en">stock_status</td>
+        <td>在庫状況</td>
+        <td class="type-cell">ENUM</td>
+        <td><span class="badge badge-null">NULL可</span><span class="badge badge-enum">ENUM</span></td>
+        <td><span class="badge badge-site">サイト情報</span></td>
+        <td class="note">🟡 中：'in_stock' | 'out_of_stock' | 'discontinued'</td>
+      </tr>
+      <tr>
+        <td class="field-en">blend_ratio</td>
+        <td>ブレンド比率（%）</td>
+        <td class="type-cell">JSON (object)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-us">ヒアリング取得</span></td>
+        <td class="note">🟡 中：鶴香・瀬戸の香のaxesスコア精度向上に必要</td>
+      </tr>
+      <tr>
+        <td class="field-en">counseling_notes</td>
+        <td>カウンセリング推薦基準</td>
+        <td class="type-cell">TEXT</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-us">ヒアリング取得</span></td>
+        <td class="note">🔴 高：AI会話フロー設計の根拠。訪問時に取得</td>
+      </tr>
+      <tr>
+        <td class="field-en">axes.intensity<br>axes.nature</td>
+        <td>強度・自然感（追加2軸）</td>
+        <td class="type-cell">TINYINT (1–10)</td>
+        <td><span class="badge badge-null">NULL可</span></td>
+        <td><span class="badge badge-us">こちらで付与</span></td>
+        <td class="note">🟡 中：4軸→6軸拡張。軸定義はKAORILOGO訪問後に確定</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 40px; font-size: 12px; color: #aaa;">
+    最終更新: 2026-03-22　／　次回更新タイミング: KAORILOGOさん訪問後
+  </div>
+
+</body>
+</html>

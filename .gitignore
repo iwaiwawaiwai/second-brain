@@ -1,0 +1,5 @@
+# 画像ファイル（ローカル管理のみ）
+mercari-items/
+
+# macOS
+.DS_Store
