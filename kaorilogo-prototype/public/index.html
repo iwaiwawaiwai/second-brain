@@ -18,6 +18,9 @@
       --ai-bubble: #F5F0EB;
       --user-bubble: #6B5744;
       --score-bar: #C9A87C;
+      --gold: #C8952A;
+      --gold-bg: #FDF8EE;
+      --gold-border: #E8C96A;
     }
 
     body {
@@ -32,14 +35,32 @@
     header {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      padding: 14px 24px;
       display: flex;
-      align-items: baseline;
-      gap: 12px;
+      align-items: center;
+      gap: 0;
     }
-    header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.05em; color: var(--primary); cursor: pointer; }
+    .header-brand { display: flex; flex-direction: column; }
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--primary);
+      cursor: pointer;
+      text-transform: uppercase;
+    }
     header h1:hover { opacity: 0.7; }
-    header p  { font-size: 12px; color: var(--text-soft); }
+    header p { font-size: 11px; color: var(--text-soft); letter-spacing: 0.04em; margin-top: 2px; }
+    .header-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+      margin: 0 16px;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
 
     main {
       display: grid;
@@ -183,28 +204,27 @@
     }
     .axis-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
-    /* おすすめ */
+    /* おすすめ（右パネル） */
     .reco-section { padding: 14px 20px; }
-    .reco-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 12px;
-    }
 
     .reco-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 5px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
       transition: border-color 0.2s;
     }
     .reco-card:hover { border-color: var(--accent); }
+    .reco-card.rank-1 {
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold-border);
+    }
+    .reco-card.rank-1:hover { border-color: var(--gold); }
 
-    .reco-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .reco-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
     .reco-rank {
-      width: 17px; height: 17px;
+      width: 18px; height: 18px;
       background: var(--accent);
       color: #fff;
       font-size: 10px;
@@ -213,12 +233,19 @@
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
+    .reco-card.rank-1 .reco-rank { background: var(--gold); }
     .reco-name { font-size: 12px; font-weight: 600; color: var(--text); }
-    .reco-score { margin-left: auto; font-size: 11px; color: var(--accent); font-weight: 600; }
-    .reco-reason { font-size: 10px; color: var(--text-soft); line-height: 1.4; }
+    .reco-score-text { margin-left: auto; font-size: 11px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+    .reco-card.rank-1 .reco-score-text { color: var(--gold); }
+
+    .reco-score-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 5px; }
+    .reco-score-bar { height: 3px; background: var(--score-bar); border-radius: 2px; transition: width 0.5s; }
+    .reco-card.rank-1 .reco-score-bar { background: var(--gold); }
+
+    .reco-reason { font-size: 11px; color: var(--text-soft); line-height: 1.5; }
     .reco-link {
       display: inline-block;
-      margin-top: 4px;
+      margin-top: 5px;
       font-size: 10px;
       color: var(--accent);
       text-decoration: none;
@@ -227,6 +254,54 @@
       padding: 1px 8px;
     }
     .reco-link:hover { background: var(--accent); color: #fff; }
+
+    /* チャット内フィーチャードカード */
+    .featured-card {
+      margin: 4px 0 0 0;
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      max-width: 72%;
+      animation: fadeInUp 0.4s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .featured-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .featured-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .featured-reason {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    .featured-btn {
+      display: inline-block;
+      padding: 7px 16px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      text-decoration: none;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .featured-btn:hover { background: var(--accent); }
 
     .empty-state {
       font-size: 12px;
@@ -265,8 +340,12 @@
 <body>
 
 <header>
-  <h1>KAORILOGO</h1>
-  <p>あなたにぴったりの香りを見つけよう</p>
+  <div class="header-brand">
+    <h1>KAORILOGO</h1>
+    <p>Life of Aroma</p>
+  </div>
+  <div class="header-divider"></div>
+  <span class="header-sub">あなたにぴったりの香りを見つけよう</span>
 </header>
 
 <main>
@@ -312,10 +391,12 @@
 
   let history = [];
   let currentProfile = { activation: null, sensory: null, social: null, formality: null, scene: null, time: null };
+  let prevAgent = 'hearing';
 
 function initChat() {
     history = [];
     currentProfile = { activation: null, sensory: null, social: null, formality: null, scene: null, time: null };
+    prevAgent = 'hearing';
     chatEl.innerHTML = '';
     axesEl.innerHTML = '';
     tagsEl.innerHTML = '';
@@ -420,28 +501,49 @@ function initChat() {
     });
   }
 
+  function productSlug(name) {
+    return name.replace(/\s+/g, '-').toLowerCase();
+  }
+
   function renderRecommendations(list, agent) {
     if (!list || list.length === 0) return;
     recoEl.innerHTML = '';
-    const showLinks = (agent === 'closing');
+    const showLinks = (agent === 'closing' || agent === 'proposal');
     list.forEach(r => {
       const card = document.createElement('div');
-      card.className = 'reco-card';
-      const slug = r.product.replace(/\s+/g, '-').toLowerCase();
+      card.className = `reco-card${r.rank === 1 ? ' rank-1' : ''}`;
+      const slug = productSlug(r.product);
       const linkHtml = showLinks
-        ? `<a class="reco-link" href="https://kaorilogo.com/products/${slug}" target="_blank">詳細・購入 →</a>`
+        ? `<a class="reco-link" href="https://lifeofaroma.thebase.in/search?q=${encodeURIComponent(r.product)}" target="_blank">詳細・購入 →</a>`
         : '';
       card.innerHTML = `
         <div class="reco-header">
           <div class="reco-rank">${r.rank}</div>
           <div class="reco-name">${r.product}</div>
-          <div class="reco-score">${r.match_score}%</div>
+          <div class="reco-score-text">${r.match_score}%</div>
         </div>
+        <div class="reco-score-bar-wrap"><div class="reco-score-bar" style="width:${r.match_score}%"></div></div>
         <div class="reco-reason">${r.reason}</div>
         ${linkHtml}
       `;
       recoEl.appendChild(card);
     });
+  }
+
+  function showFeaturedCard(rec) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-wrap ai';
+    const card = document.createElement('div');
+    card.className = 'featured-card';
+    card.innerHTML = `
+      <div class="featured-label">✨ いちばんおすすめ</div>
+      <div class="featured-name">${rec.product}</div>
+      <div class="featured-reason">${rec.reason}</div>
+      <a class="featured-btn" href="https://lifeofaroma.thebase.in/search?q=${encodeURIComponent(rec.product)}" target="_blank">詳細・購入ページへ →</a>
+    `;
+    wrap.appendChild(card);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTop = chatEl.scrollHeight;
   }
 
   async function sendMessage() {
@@ -489,7 +591,14 @@ function initChat() {
         }
         if (data.recommendations && data.recommendations.length > 0) {
           renderRecommendations(data.recommendations, data.current_agent);
+
+          // hearing → proposal 切り替え時にチャット内フィーチャードカードを表示
+          if (prevAgent === 'hearing' && data.current_agent === 'proposal') {
+            const top = data.recommendations.find(r => r.rank === 1);
+            if (top) showFeaturedCard(top);
+          }
         }
+        prevAgent = data.current_agent;
       }
     } catch (err) {
       chatEl.removeChild(thinkingWrap);
