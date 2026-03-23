@@ -99,12 +99,12 @@ proposal → closing : 「これにします」「購入」「試してみます
   ]
 }
 
-recommendations は**常に全商品（13件）を出力する**（filled_axes = 0 でも）。
-- 全商品にスコアをつけてランク順に並べること
+recommendations は**上位5件のみ出力する**（filled_axes = 0 でも）。
+- 全13商品を内部でスコアリングし、上位5件だけを返すこと
 - filled_axes = 0: 人気順・汎用性順で暫定スコアをつける
 - filled_axes = 1〜2: シーン・時間帯との一致度でスコアを更新
 - filled_axes = 3以上: プロファイル全軸との一致度で精度の高いスコアをつける
-- スコアが低い商品も含めて全件出力する（除外しない）
+- 6位以下は出力しない
 
 ---
 
@@ -150,7 +150,7 @@ app.post('/api/chat', async (req, res) => {
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages,
     });
