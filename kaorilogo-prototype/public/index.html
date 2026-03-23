@@ -312,28 +312,130 @@
 
     .thinking { opacity: 0.5; font-style: italic; font-size: 13px; }
 
-    /* ── シーン選択 ── */
+    /* ── シーン選択カード ── */
     .scene-choices {
-      padding: 10px 20px 14px;
-      display: flex;
-      flex-wrap: wrap;
+      padding: 10px 16px 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
     .scene-choices.hidden { display: none; }
     .scene-btn {
-      padding: 8px 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 13px;
+      padding: 0;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
       font-family: inherit;
-      color: var(--text);
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--panel);
     }
     .scene-btn:hover {
       border-color: var(--accent);
-      background: #FDF5ED;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(107, 87, 68, 0.12);
+    }
+    .scene-btn-img {
+      width: 100%;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background-size: cover;
+      background-position: center;
+    }
+    .scene-btn-label {
+      padding: 5px 6px 7px;
+      font-size: 11px;
+      color: var(--text);
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+    }
+    /* シーン別カラー */
+    .scene-btn[data-key="work"]    .scene-btn-img { background: linear-gradient(135deg, #FFF8EE 0%, #FFE8C8 100%); }
+    .scene-btn[data-key="sleep"]   .scene-btn-img { background: linear-gradient(135deg, #E8E0F5 0%, #C5B8E8 100%); }
+    .scene-btn[data-key="relax"]   .scene-btn-img { background: linear-gradient(135deg, #FFF3ED 0%, #FFD8B8 100%); }
+    .scene-btn[data-key="outdoor"] .scene-btn-img { background: linear-gradient(135deg, #E8F5EE 0%, #B8E8D0 100%); }
+    .scene-btn[data-key="gift"]    .scene-btn-img { background: linear-gradient(135deg, #FDE8F0 0%, #F5C0D8 100%); }
+
+    /* ── チャット内フィーチャードカード（複数） ── */
+    .featured-group {
+      margin: 4px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 80%;
+      animation: fadeInUp 0.4s ease;
+    }
+    .featured-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-soft);
+      letter-spacing: 0.04em;
+      padding-left: 2px;
+    }
+    .featured-card {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      transition: box-shadow 0.2s;
+    }
+    .featured-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+    .featured-card-header {
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .featured-card-emoji {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .featured-card-body { flex: 1; min-width: 0; }
+    .featured-rank-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .featured-card:not(:first-child) .featured-rank-badge { color: var(--text-soft); }
+    .featured-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 2px;
+    }
+    .featured-reason {
+      font-size: 11px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+    .featured-card-footer {
+      padding: 8px 16px 12px;
+    }
+    .featured-btn {
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      text-decoration: none;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .featured-btn:hover { background: var(--accent); }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -353,11 +455,26 @@
   <div class="chat-panel">
     <div id="chat-messages"></div>
     <div class="scene-choices" id="scene-choices">
-      <button class="scene-btn" data-scene="仕事中・在宅ワーク中に使いたい">🏢 仕事中・在宅</button>
-      <button class="scene-btn" data-scene="寝る前、寝室で使いたい">🛏️ 寝る前・寝室</button>
-      <button class="scene-btn" data-scene="リビングでくつろぐときに使いたい">🛋️ リビングでくつろぐ</button>
-      <button class="scene-btn" data-scene="外出やお出かけのときに使いたい">🚶 外出・お出かけ</button>
-      <button class="scene-btn" data-scene="ギフト・プレゼント用に選びたい">🎁 ギフト・プレゼント用</button>
+      <button class="scene-btn" data-key="work"    data-scene="仕事中・在宅ワーク中に使いたい">
+        <div class="scene-btn-img">💼</div>
+        <div class="scene-btn-label">仕事中・在宅</div>
+      </button>
+      <button class="scene-btn" data-key="sleep"   data-scene="寝る前、寝室で使いたい">
+        <div class="scene-btn-img">🌙</div>
+        <div class="scene-btn-label">寝る前・寝室</div>
+      </button>
+      <button class="scene-btn" data-key="relax"   data-scene="リビングでくつろぐときに使いたい">
+        <div class="scene-btn-img">🛋️</div>
+        <div class="scene-btn-label">リビングで<br>くつろぐ</div>
+      </button>
+      <button class="scene-btn" data-key="outdoor" data-scene="外出やお出かけのときに使いたい">
+        <div class="scene-btn-img">🌿</div>
+        <div class="scene-btn-label">外出・お出かけ</div>
+      </button>
+      <button class="scene-btn" data-key="gift"    data-scene="ギフト・プレゼント用に選びたい">
+        <div class="scene-btn-img">🎁</div>
+        <div class="scene-btn-label">ギフト・<br>プレゼント用</div>
+      </button>
     </div>
     <div class="input-area">
       <input type="text" id="user-input" placeholder="どんな気分ですか？どんな場面で使いたいですか？" />
@@ -501,6 +618,33 @@ function initChat() {
     });
   }
 
+  // 商品ごとのテーマ（背景グラデーション + 絵文字）
+  const PRODUCT_THEMES = {
+    'ON Time':          { from: '#FFF3E0', to: '#FFD8A0', emoji: '☀️' },
+    'OFF Time':         { from: '#EDE7F6', to: '#C5B8E8', emoji: '🌙' },
+    'All Time':         { from: '#F3E8FF', to: '#D8C8EE', emoji: '🌿' },
+    '認知AM':            { from: '#E3F2FD', to: '#B0D8F5', emoji: '🧠' },
+    '認知PM':            { from: '#E8EAF6', to: '#C0C8E8', emoji: '🌆' },
+    'ラベンダー':         { from: '#F5EEF8', to: '#D8BCE8', emoji: '💜' },
+    'ローズマリー':       { from: '#E8F5E9', to: '#A8D8B0', emoji: '🌱' },
+    'レモン':            { from: '#FFFDE7', to: '#FFF088', emoji: '🍋' },
+    'ベルガモット':       { from: '#FFF8E1', to: '#FFE090', emoji: '🍊' },
+    'ペパーミント':       { from: '#E0F2F1', to: '#80D8CE', emoji: '❄️' },
+    'ゼラニウム':         { from: '#FCE4EC', to: '#F4ADC4', emoji: '🌸' },
+    'イランイラン':       { from: '#FFF9C4', to: '#F5E060', emoji: '✨' },
+    '瀬戸の香':          { from: '#E0F7FA', to: '#80D8E8', emoji: '🌊' },
+    '鶴香・未来':         { from: '#FAFAF0', to: '#E8E8C0', emoji: '🕊️' },
+    'Upcycled Citron':  { from: '#F9FBE7', to: '#D8E890', emoji: '🌿' },
+  };
+
+  function getTheme(productName) {
+    // 部分一致でもヒットするようにする
+    for (const [key, theme] of Object.entries(PRODUCT_THEMES)) {
+      if (productName.includes(key) || key.includes(productName)) return theme;
+    }
+    return { from: '#FAF7F4', to: '#EDE0D8', emoji: '🌸' };
+  }
+
   function productSlug(name) {
     return name.replace(/\s+/g, '-').toLowerCase();
   }
@@ -530,18 +674,42 @@ function initChat() {
     });
   }
 
-  function showFeaturedCard(rec) {
+  function showFeaturedCards(list) {
+    if (!list || list.length === 0) return;
     const wrap = document.createElement('div');
     wrap.className = 'bubble-wrap ai';
-    const card = document.createElement('div');
-    card.className = 'featured-card';
-    card.innerHTML = `
-      <div class="featured-label">✨ いちばんおすすめ</div>
-      <div class="featured-name">${rec.product}</div>
-      <div class="featured-reason">${rec.reason}</div>
-      <a class="featured-btn" href="https://lifeofaroma.thebase.in/search?q=${encodeURIComponent(rec.product)}" target="_blank">詳細・購入ページへ →</a>
-    `;
-    wrap.appendChild(card);
+
+    const group = document.createElement('div');
+    group.className = 'featured-group';
+
+    const groupLabel = document.createElement('div');
+    groupLabel.className = 'featured-group-label';
+    groupLabel.textContent = `✨ あなたへのおすすめ ${list.length}選`;
+    group.appendChild(groupLabel);
+
+    list.forEach((rec, idx) => {
+      const theme = getTheme(rec.product);
+      const card = document.createElement('div');
+      card.className = 'featured-card';
+      card.style.background = `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)`;
+      card.style.borderColor = theme.to;
+      card.innerHTML = `
+        <div class="featured-card-header">
+          <div class="featured-card-emoji">${theme.emoji}</div>
+          <div class="featured-card-body">
+            <div class="featured-rank-badge">${idx === 0 ? '★ いちばんおすすめ' : `No.${rec.rank}`}</div>
+            <div class="featured-name">${rec.product}</div>
+            <div class="featured-reason">${rec.reason}</div>
+          </div>
+        </div>
+        <div class="featured-card-footer">
+          <a class="featured-btn" href="https://lifeofaroma.thebase.in/search?q=${encodeURIComponent(rec.product)}" target="_blank">詳細・購入ページへ →</a>
+        </div>
+      `;
+      group.appendChild(card);
+    });
+
+    wrap.appendChild(group);
     chatEl.appendChild(wrap);
     chatEl.scrollTop = chatEl.scrollHeight;
   }
@@ -592,10 +760,12 @@ function initChat() {
         if (data.recommendations && data.recommendations.length > 0) {
           renderRecommendations(data.recommendations, data.current_agent);
 
-          // hearing → proposal 切り替え時にチャット内フィーチャードカードを表示
+          // hearing → proposal 切り替え時にチャット内フィーチャードカードを表示（上位3件）
           if (prevAgent === 'hearing' && data.current_agent === 'proposal') {
-            const top = data.recommendations.find(r => r.rank === 1);
-            if (top) showFeaturedCard(top);
+            const top3 = data.recommendations
+              .sort((a, b) => a.rank - b.rank)
+              .slice(0, 3);
+            if (top3.length > 0) showFeaturedCards(top3);
           }
         }
         prevAgent = data.current_agent;
