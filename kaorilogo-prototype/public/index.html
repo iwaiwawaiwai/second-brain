@@ -186,18 +186,31 @@
 
     .axis-item {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 12px;
     }
-    .axis-label-full {
-      font-size: 10px;
+    .axis-title {
+      font-size: 11px;
       color: var(--text-soft);
       white-space: nowrap;
       flex-shrink: 0;
-      width: 168px;
+      width: 44px;
     }
-    .axis-bar-wrap { flex: 1; position: relative; height: 6px; background: var(--border); border-radius: 3px; min-width: 40px; }
+    .axis-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .axis-endpoints {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-soft);
+      opacity: 0.75;
+    }
+    .axis-bar-wrap { position: relative; height: 6px; background: var(--border); border-radius: 3px; }
     .axis-bar {
       position: absolute;
       top: 0; bottom: 0;
@@ -216,6 +229,17 @@
       margin-bottom: 6px;
     }
     .axis-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .scene-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .scene-value {
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .scene-value.empty { color: var(--border); }
 
     /* おすすめカード内 商品軸ミニバー */
     .reco-axes { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
@@ -678,9 +702,21 @@
     const item = document.createElement('div');
     item.className = 'axis-item';
 
-    const labelEl = document.createElement('div');
-    labelEl.className = 'axis-label-full';
-    labelEl.textContent = `${def.label}（${def.min} ↔ ${def.max}）`;
+    const titleEl = document.createElement('div');
+    titleEl.className = 'axis-title';
+    titleEl.textContent = def.label;
+
+    const barCol = document.createElement('div');
+    barCol.className = 'axis-bar-col';
+
+    const endpoints = document.createElement('div');
+    endpoints.className = 'axis-endpoints';
+    const minEl = document.createElement('span');
+    minEl.textContent = def.min;
+    const maxEl = document.createElement('span');
+    maxEl.textContent = def.max;
+    endpoints.appendChild(minEl);
+    endpoints.appendChild(maxEl);
 
     const barWrap = document.createElement('div');
     barWrap.className = 'axis-bar-wrap';
@@ -695,8 +731,10 @@
       barWrap.appendChild(bar);
     }
 
-    item.appendChild(labelEl);
-    item.appendChild(barWrap);
+    barCol.appendChild(endpoints);
+    barCol.appendChild(barWrap);
+    item.appendChild(titleEl);
+    item.appendChild(barCol);
     return item;
   }
 
@@ -757,17 +795,17 @@
       axesEl.appendChild(renderAxisBar('time', null));
     }
 
-    // scene はラベル行として表示
+    // scene はタイトル＋値を縦並びで表示
     tagsEl.innerHTML = '';
     const sceneItem = document.createElement('div');
-    sceneItem.className = 'axis-item';
+    sceneItem.className = 'scene-item';
     const sceneLbl = document.createElement('div');
-    sceneLbl.className = 'axis-label-full';
-    sceneLbl.textContent = `使用シーン（仕事・寝室など）`;
+    sceneLbl.className = 'axis-title';
+    sceneLbl.style.width = 'auto';
+    sceneLbl.textContent = '使用シーン';
     const sceneVal = document.createElement('div');
-    sceneVal.style.cssText = 'font-size:10px; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80px;';
+    sceneVal.className = profile.scene ? 'scene-value' : 'scene-value empty';
     sceneVal.textContent = profile.scene ? `📍 ${profile.scene}` : '—';
-    if (!profile.scene) sceneVal.style.color = 'var(--border)';
     sceneItem.appendChild(sceneLbl);
     sceneItem.appendChild(sceneVal);
     tagsEl.appendChild(sceneItem);
