@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>作業フローチャート</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 40px 20px; }
+
+h1 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+.subtitle { text-align: center; font-size: 12px; color: #888; margin-bottom: 32px; }
+
+.legend { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555; }
+.legend-box { width: 14px; height: 14px; border-radius: 3px; }
+
+/* フローチャート全体 */
+.chart { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+/* ノード共通 */
+.node {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 10px 18px;
+  font-size: 12px; font-weight: 600; line-height: 1.4;
+  position: relative;
+}
+.node-sub { font-size: 10px; font-weight: 400; color: #666; margin-top: 3px; }
+
+/* 形状 */
+.rect       { border-radius: 8px; min-width: 180px; max-width: 220px; }
+.diamond-wrap {
+  display: flex; align-items: center; justify-content: center;
+  position: relative; width: 180px; height: 70px;
+}
+.diamond {
+  width: 140px; height: 50px;
+  transform: perspective(200px);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; text-align: center;
+  padding: 4px 24px;
+}
+.terminal { border-radius: 999px; min-width: 120px; padding: 8px 24px; }
+
+/* カラー */
+.c-start   { background: #1e293b; color: white; }
+.c-action  { background: #dbeafe; border: 1.5px solid #93c5fd; color: #1e40af; }
+.c-command { background: #d1fae5; border: 1.5px solid #6ee7b7; color: #065f46; }
+.c-file    { background: #fef3c7; border: 1.5px solid #fbbf24; color: #92400e; }
+.c-decide  { background: #fee2e2; color: #991b1b; }
+.c-end     { background: #374151; color: white; }
+
+/* 矢印 */
+.arrow { display: flex; flex-direction: column; align-items: center; }
+.arrow-line { width: 2px; background: #aaa; }
+.arrow-head { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #aaa; }
+.arrow-label { font-size: 10px; color: #888; margin: 2px 0; }
+
+/* 分岐 */
+.branch { display: flex; align-items: flex-start; gap: 0; position: relative; }
+.branch-line-h { height: 2px; background: #aaa; margin-top: 34px; }
+.branch-col { display: flex; flex-direction: column; align-items: center; }
+.branch-label { font-size: 10px; color: #888; margin-bottom: 4px; }
+
+/* セクション区切り */
+.section-label {
+  background: #1e293b; color: white;
+  padding: 4px 16px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  margin: 24px 0 16px;
+}
+</style>
+</head>
+<body>
+
+<h1>作業フローチャート</h1>
+<p class="subtitle">ミニマムワークフロー v1 — 2026-03-29</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-box" style="background:#dbeafe;border:1px solid #93c5fd"></div>あなたの行動</div>
+  <div class="legend-item"><div class="legend-box" style="background:#d1fae5;border:1px solid #6ee7b7"></div>コマンド</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fef3c7;border:1px solid #fbbf24"></div>ファイル操作</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border:1px solid #fca5a5"></div>判断</div>
+</div>
+
+<svg width="0" height="0">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#aaa"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="chart">
+
+  <!-- ===== 朝一 ===== -->
+  <div class="section-label">朝一 — 作業開始</div>
+
+  <div class="node terminal c-start">START</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:20px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-action">「作業開始」と打つ</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-command">/session</div>
+  <div class="node-sub" style="font-size:10px;color:#666;margin-top:-4px;margin-bottom:4px">作業中.md ＋ 課題リスト.md を読む</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <!-- 分岐：前日の続きあり？ -->
+  <div class="diamond-wrap">
+    <div class="diamond c-decide">前日の続きがある？</div>
+  </div>
+
+  <!-- Yes/No 分岐 -->
+  <div style="display:flex; align-items:flex-start; gap:0;">
+    <!-- YES 左 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;margin-top:0;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:-30px;">はい</div>
+      </div>
+      <div class="node rect c-file" style="min-width:150px;margin-top:-8px;">前回の進捗を表示<div class="node-sub">「続けますか？」と確認</div></div>
+    </div>
+
+    <!-- NO 右 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;margin-top:0;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:30px;">いいえ</div>
+      </div>
+      <div class="node rect c-file" style="min-width:150px;margin-top:-8px;">課題リストから<br>フォーカスを1つ提示</div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:8px"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-action">「これでいく」と答える<div class="node-sub">または「別のにする」</div></div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-start" style="background:#166534;border-radius:8px;">作業開始</div>
+
+
+  <!-- ===== 作業中 ===== -->
+  <div class="section-label">作業中 — ポモドーロ 25分</div>
+
+  <div class="node rect c-action">課題に集中する</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="diamond-wrap">
+    <div class="diamond c-decide">気になることが出た？</div>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;gap:0;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:-24px;">はい</div>
+      </div>
+      <div class="node rect c-file" style="min-width:150px;margin-top:-8px;">00_Inbox/ にメモ<div class="node-sub">判断しない・調べない</div></div>
+      <div style="width:2px;height:16px;background:#aaa;margin-top:4px;"></div>
+      <div style="font-size:10px;color:#888;">↩ 作業に戻る</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:24px;">いいえ</div>
+      </div>
+      <div class="node rect c-action" style="min-width:150px;margin-top:-8px;">続ける</div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:12px;"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="diamond-wrap">
+    <div class="diamond c-decide">迷子になった？</div>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;gap:0;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:-24px;">はい</div>
+      </div>
+      <div class="node rect c-command" style="min-width:150px;margin-top:-8px;">/session<div class="node-sub">現状・進捗・次を表示</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="height:2px;width:80px;background:#aaa;"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:2px;height:16px;background:#aaa;"></div>
+        <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #aaa;"></div>
+        <div style="font-size:10px;color:#888;position:relative;top:-30px;left:24px;">いいえ</div>
+      </div>
+      <div class="node rect c-action" style="min-width:150px;margin-top:-8px;">続ける</div>
+    </div>
+  </div>
+
+
+  <!-- ===== 中断 ===== -->
+  <div class="section-label">中断 — 横やり・タイマー終了</div>
+
+  <div class="node rect c-command">/session「中断します」</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-action" style="max-width:260px;">
+    30秒で答える
+    <div class="node-sub">① ここまでやったこと</div>
+    <div class="node-sub">② 再開したらまずやること</div>
+    <div class="node-sub">③ 気になったこと（課題リストに追加する？）</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div class="node rect c-file" style="min-width:140px;">作業中.md<div class="node-sub">進捗・次を記録</div></div>
+    <div class="node rect c-file" style="min-width:140px;">課題リスト.md<div class="node-sub">新課題を即追加</div></div>
+  </div>
+
+  <div class="arrow" style="margin-top:8px;"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node terminal c-end">中断 / 離席</div>
+
+
+  <!-- ===== 再開 ===== -->
+  <div class="section-label">再開 — 戻ってきたとき</div>
+
+  <div class="node terminal c-start">戻ってきた</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-command">/session</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-file">作業中.md を読む<div class="node-sub">前回の状態を表示</div></div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-start" style="background:#166534;border-radius:8px;">「次にやること」から即再開</div>
+
+
+  <!-- ===== 週末 ===== -->
+  <div class="section-label">週末 — 週次レビュー</div>
+
+  <div class="node rect c-command">/weekly-review</div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-file" style="max-width:260px;">
+    読み込み
+    <div class="node-sub">00_Inbox/ ＋ 課題リスト.md ＋ 10_Journal/</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-action" style="max-width:260px;">
+    Inboxを仕分け
+    <div class="node-sub">来週の課題 → 課題リスト.md へ</div>
+    <div class="node-sub">参考資料 → 40_Resources/ へ</div>
+    <div class="node-sub">不要 → 削除 / 99_Archives/</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node rect c-action" style="max-width:260px;">
+    課題リストを更新
+    <div class="node-sub">完了を移動・来週フォーカスを選ぶ</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div class="node rect c-file" style="min-width:140px;">課題リスト.md<div class="node-sub">更新完了</div></div>
+    <div class="node rect c-file" style="min-width:140px;">10_Journal/<div class="node-sub">レビュー保存</div></div>
+  </div>
+
+  <div class="arrow" style="margin-top:8px;"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node terminal c-end" style="background:#1e40af;">翌週へ</div>
+
+</div>
+
+<div style="height:60px;"></div>
+</body>
+</html>
